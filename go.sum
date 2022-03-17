@@ -108,6 +108,8 @@ github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuy
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d/go.mod h1:rBZYJk541a8SKzHPHnH3zbiI+7dagKZ0cgpgrD7Fyho=
+github.com/amorenoz/goflow2 v1.0.5-0.20220317141611-4903f5d9117b h1:X/kCQoIogEolpyaRqUhN9ARdbNbl5gVNRrlNzemlEio=
+github.com/amorenoz/goflow2 v1.0.5-0.20220317141611-4903f5d9117b/go.mod h1:yqw2cLe+lbnDN1+JKBqxoj2FKOA83iB8wV0aCKnlesg=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883/go.mod h1:rCTlJbsFo29Kk6CurOXKm700vrz8f0KW0JNfpkRJY/8=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/apache/arrow/go/arrow v0.0.0-20191024131854-af6fa24be0db/go.mod h1:VTxUBvSJ3s3eHAg65PNgrsn5BtqCRPdmyXh6rAfdxN0=
@@ -721,8 +723,6 @@ github.com/netobserv/gopipes v0.1.0 h1:oVm8NrZgHR1WJ3kDm7Ex6bqmuYt5NxddlD+xRiTJ7
 github.com/netobserv/gopipes v0.1.0/go.mod h1:eGoHZW1ON8Dx/zmDXUhsbVNqatPjtpdO0UZBmGZGmVI=
 github.com/netobserv/loki-client-go v0.0.0-20211018150932-cb17208397a9 h1:c2swm3EamzgjBq9idNbEs5bNz20FJo/HK6uxyigXekQ=
 github.com/netobserv/loki-client-go v0.0.0-20211018150932-cb17208397a9/go.mod h1:LHXpc5tjKvsfZn0pwLKrvlgEhZcCaw3Di9mUEZGAI4E=
-github.com/netsampler/goflow2 v1.0.5-0.20220106210010-20e8e567090c h1:1Hk5lzky++7t4O/cLwMoPXDXGgpja35Nf/U6rXXjEns=
-github.com/netsampler/goflow2 v1.0.5-0.20220106210010-20e8e567090c/go.mod h1:yqw2cLe+lbnDN1+JKBqxoj2FKOA83iB8wV0aCKnlesg=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
