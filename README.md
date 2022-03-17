@@ -384,7 +384,7 @@ parameters:
             type: add_location
           - input: srcIP
             output: srcK8S
-            type: add_kubernetes
+            type: add_kubernetes_ip
           - input: srcSubnet
             output: match-10.0
             type: add_regex_if
@@ -414,7 +414,7 @@ All the geo-location fields will be named by appending `output` value
 (`dstLocation` in the example above) to their names in the [ip2location](https://lite.ip2location.com/ DB 
 (e.g., `CountryName`, `CountryLongName`, `RegionName`, `CityName` , `Longitude` and `Latitude`)
 
-The fifth rule `add_kubernetes` generates new fields with kubernetes information by
+The fifth rule `add_kubernetes_ip` generates new fields with kubernetes information by
 matching the `input` value (`srcIP` in the example above) with kubernetes `nodes`, `pods` and `services` IPs.
 All the kubernetes fields will be named by appending `output` value
 (`srcK8S` in the example above) to the kubernetes metadata field names

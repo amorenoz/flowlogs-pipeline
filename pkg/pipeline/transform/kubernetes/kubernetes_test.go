@@ -66,15 +66,15 @@ func (informerMock *InformerMock) GetIndexer() cache.Indexer {
 	return &IndexerMock{}
 }
 
-func TestKubeData_getInfo(t *testing.T) {
+func TestKubeData_getIPInfo(t *testing.T) {
 	// Test with no informer
 	kubeData := KubeData{}
-	info, err := kubeData.GetInfo("1.2.3.4")
+	info, err := kubeData.GetIPInfo("1.2.3.4")
 	require.EqualError(t, err, "can't find ip")
 	require.Nil(t, info)
 
 	// Test with mock pod informer
-	expectedInfo := &Info{
+	expectedIPInfo := &IPInfo{
 		Type:      "Pod",
 		Name:      "podName",
 		Namespace: "podNamespace",
@@ -85,7 +85,7 @@ func TestKubeData_getInfo(t *testing.T) {
 	informerMock := &InformerMock{}
 	informerMock.On("GetIndexer", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	kubeData.ipInformers["Pod"] = informerMock
-	info, err = kubeData.GetInfo("1.2.3.4")
+	info, err = kubeData.GetIPInfo("1.2.3.4")
 	require.NoError(t, err)
-	require.Equal(t, info, expectedInfo)
+	require.Equal(t, info, expectedIPInfo)
 }

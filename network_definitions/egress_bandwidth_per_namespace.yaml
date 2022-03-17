@@ -13,7 +13,7 @@ transform:
   rules:
     - input: srcIP
       output: srcK8S
-      type: add_kubernetes
+      type: add_kubernetes_ip
       parameters: srcK8S_labels
 extract:
   aggregates:

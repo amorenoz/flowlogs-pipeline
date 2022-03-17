@@ -99,7 +99,7 @@ Following is the supported API format for network transformations:
                      add_subnet: add output subnet field from input field and prefix length from parameters field
                      add_location: add output location fields from input
                      add_service: add output network service field from input port and parameters protocol field
-                     add_kubernetes: add output kubernetes fields from input
+                     add_kubernetes_ip: add output kubernetes fields from input IP address
                  parameters: parameters specific to type
          kubeconfigpath: path to kubeconfig file (optional)
 </pre>

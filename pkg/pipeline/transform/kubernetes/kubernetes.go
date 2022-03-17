@@ -57,7 +57,7 @@ type Owner struct {
 	Name string
 }
 
-type Info struct {
+type IPInfo struct {
 	Type            string
 	Name            string
 	Namespace       string
@@ -67,15 +67,15 @@ type Info struct {
 	HostIP          string
 }
 
-func (k *KubeData) GetInfo(ip string) (*Info, error) {
+func (k *KubeData) GetIPInfo(ip string) (*IPInfo, error) {
 	for objType, informer := range k.ipInformers {
 		objs, err := informer.GetIndexer().ByIndex(IndexIP, ip)
 		if err == nil && len(objs) > 0 {
-			var info *Info
+			var info *IPInfo
 			switch objType {
 			case typePod:
 				pod := objs[0].(*v1.Pod)
-				info = &Info{
+				info = &IPInfo{
 					Type:            typePod,
 					Name:            pod.Name,
 					Namespace:       pod.Namespace,
@@ -85,7 +85,7 @@ func (k *KubeData) GetInfo(ip string) (*Info, error) {
 				}
 			case typeNode:
 				node := objs[0].(*v1.Node)
-				info = &Info{
+				info = &IPInfo{
 					Type:      typeNode,
 					Name:      node.Name,
 					Namespace: node.Namespace,
@@ -93,7 +93,7 @@ func (k *KubeData) GetInfo(ip string) (*Info, error) {
 				}
 			case typeService:
 				service := objs[0].(*v1.Service)
-				info = &Info{
+				info = &IPInfo{
 					Type:      typeService,
 					Name:      service.Name,
 					Namespace: service.Namespace,
@@ -109,7 +109,7 @@ func (k *KubeData) GetInfo(ip string) (*Info, error) {
 	return nil, fmt.Errorf("can't find ip")
 }
 
-func (k *KubeData) getOwner(info *Info) Owner {
+func (k *KubeData) getOwner(info *IPInfo) Owner {
 	if info.OwnerReferences != nil && len(info.OwnerReferences) > 0 {
 		ownerReference := info.OwnerReferences[0]
 		if ownerReference.Kind == "ReplicaSet" {

@@ -135,9 +135,9 @@ func (n *Network) TransformEntry(inputEntry config.GenericMap) config.GenericMap
 				}
 			}
 			outputEntries[rule.Output] = service.Name
-		case api.TransformNetworkOperationName("AddKubernetes"):
-			var kubeInfo *kubernetes.Info
-			kubeInfo, err := kubernetes.Data.GetInfo(fmt.Sprintf("%s", outputEntries[rule.Input]))
+		case api.TransformNetworkOperationName("AddKubernetesIP"):
+			var kubeInfo *kubernetes.IPInfo
+			kubeInfo, err := kubernetes.Data.GetIPInfo(fmt.Sprintf("%s", outputEntries[rule.Input]))
 			if err != nil {
 				log.Infof("Can't find kubernetes info for IP %v err %v", outputEntries[rule.Input], err)
 				continue
@@ -174,7 +174,7 @@ func NewTransformNetwork(params config.StageParam) (Transformer, error) {
 		switch rule.Type {
 		case api.TransformNetworkOperationName("AddLocation"):
 			needToInitLocationDB = true
-		case api.TransformNetworkOperationName("AddKubernetes"):
+		case api.TransformNetworkOperationName("AddKubernetesIP"):
 			needToInitKubeData = true
 		case api.TransformNetworkOperationName("ConnTracking"):
 			needToInitConnectionTracking = true

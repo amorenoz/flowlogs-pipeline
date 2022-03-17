@@ -85,7 +85,7 @@ func getMockNetworkTransformRules() api.NetworkTransformRules {
 		api.NetworkTransformRule{
 			Input:  "srcIP",
 			Output: "srcIP_k8s",
-			Type:   "add_kubernetes",
+			Type:   "add_kubernetes_ip",
 		},
 	}
 

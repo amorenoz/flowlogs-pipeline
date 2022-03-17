@@ -63,7 +63,7 @@ parameters:
         parameters: /16
       - input: srcIP
         output: srcK8S
-        type: add_kubernetes
+        type: add_kubernetes_ip
         parameters: srcK8S_labels
       - input: dstIP
         output: dstLocation

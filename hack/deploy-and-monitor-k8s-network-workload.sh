@@ -60,11 +60,11 @@ pipeline:
       rules:
       - input: srcIP
         output: srcK8S
-        type: add_kubernetes
+        type: add_kubernetes_ip
         parameters: ""
       - input: dstIP
         output: dstK8S
-        type: add_kubernetes
+        type: add_kubernetes_ip
         parameters: ""
     type: network
   write:
