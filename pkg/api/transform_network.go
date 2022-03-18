@@ -23,13 +23,14 @@ type TransformNetwork struct {
 }
 
 type TransformNetworkOperationEnum struct {
-	ConnTracking    string `yaml:"conn_tracking" doc:"set output field to value of parameters field only for new flows by matching template in input field"`
-	AddRegExIf      string `yaml:"add_regex_if" doc:"add output field if input field satisfies regex pattern from parameters field"`
-	AddIf           string `yaml:"add_if" doc:"add output field if input field satisfies criteria from parameters field"`
-	AddSubnet       string `yaml:"add_subnet" doc:"add output subnet field from input field and prefix length from parameters field"`
-	AddLocation     string `yaml:"add_location" doc:"add output location fields from input"`
-	AddService      string `yaml:"add_service" doc:"add output network service field from input port and parameters protocol field"`
-	AddKubernetesIP string `yaml:"add_kubernetes_ip" doc:"add output kubernetes fields from input IP address"`
+	ConnTracking     string `yaml:"conn_tracking" doc:"set output field to value of parameters field only for new flows by matching template in input field"`
+	AddRegExIf       string `yaml:"add_regex_if" doc:"add output field if input field satisfies regex pattern from parameters field"`
+	AddIf            string `yaml:"add_if" doc:"add output field if input field satisfies criteria from parameters field"`
+	AddSubnet        string `yaml:"add_subnet" doc:"add output subnet field from input field and prefix length from parameters field"`
+	AddLocation      string `yaml:"add_location" doc:"add output location fields from input"`
+	AddService       string `yaml:"add_service" doc:"add output network service field from input port and parameters protocol field"`
+	AddKubernetesIP  string `yaml:"add_kubernetes_ip" doc:"add output kubernetes fields from input IP address"`
+	AddNetworkPolicy string `yaml:"add_kubernetes_np" doc:"add output kubernetes network policy fields from input observation_point_id "`
 }
 
 func TransformNetworkOperationName(operation string) string {

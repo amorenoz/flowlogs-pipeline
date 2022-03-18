@@ -155,6 +155,27 @@ func (n *Network) TransformEntry(inputEntry config.GenericMap) config.GenericMap
 			if kubeInfo.HostIP != "" {
 				outputEntries[rule.Output+"_HostIP"] = kubeInfo.HostIP
 			}
+		case api.TransformNetworkOperationName("AddNetworkPolicy"):
+			var sampleInfo *kubernetes.ACLSampleInfo
+			value, ok := outputEntries[rule.Input]
+			if !ok || value == nil {
+				log.Debugf("Missing input %s in sample %+#v", rule.Input, outputEntries)
+				continue
+			}
+			sampleInfo, err := kubernetes.Data.GetSampleInfo(int(value.(float64)))
+			if err != nil {
+				log.Infof("Can't find kubernetes sample info %v err %v", outputEntries[rule.Input], err)
+				continue
+			}
+			switch sampleInfo.Type {
+			case kubernetes.ACLSampleTypeNetworkPolicy:
+				outputEntries["NetworkPolicyName"] = sampleInfo.NetworkPolicy
+				outputEntries["NetworkPolicyAction"] = "ACCEPT"
+			case kubernetes.ACLSampleTypeNamespace:
+				outputEntries["NetworkPolicyAction"] = "DROP"
+				outputEntries["NetworkPolicyNamespace"] = sampleInfo.Namespace
+			}
+			outputEntries["NetworkPolicyDirection"] = sampleInfo.Direction
 		default:
 			log.Panicf("unknown type %s for transform.Network rule: %v", rule.Type, rule)
 		}
@@ -175,6 +196,8 @@ func NewTransformNetwork(params config.StageParam) (Transformer, error) {
 		case api.TransformNetworkOperationName("AddLocation"):
 			needToInitLocationDB = true
 		case api.TransformNetworkOperationName("AddKubernetesIP"):
+			needToInitKubeData = true
+		case api.TransformNetworkOperationName("AddNetworkPolicy"):
 			needToInitKubeData = true
 		case api.TransformNetworkOperationName("ConnTracking"):
 			needToInitConnectionTracking = true

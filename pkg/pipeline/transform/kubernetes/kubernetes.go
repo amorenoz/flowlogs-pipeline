@@ -18,15 +18,18 @@
 package kubernetes
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
 	"path"
+	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	netv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -41,13 +44,18 @@ const (
 	kubeConfigEnvVariable = "KUBECONFIG"
 	syncTime              = 10 * time.Minute
 	IndexIP               = "byIP"
-	typeNode              = "Node"
-	typePod               = "Pod"
-	typeService           = "Service"
+	//IndexIngressOPID      = "byIngressObservationPointID"
+	//IndexEgressOPID       = "byEgressObservationPointID"
+	typeNode          = "Node"
+	typePod           = "Pod"
+	typeService       = "Service"
+	typeNetworkPolicy = "NetworkPolicy"
+	typeNamespace     = "Namespace"
 )
 
 type KubeData struct {
 	ipInformers        map[string]cache.SharedIndexInformer
+	sampleInformers    map[ACLSampleType]cache.SharedIndexInformer
 	replicaSetInformer cache.SharedIndexInformer
 	stopChan           chan struct{}
 }
@@ -65,6 +73,69 @@ type IPInfo struct {
 	OwnerReferences []metav1.OwnerReference
 	Owner           Owner
 	HostIP          string
+}
+
+type ACLSampleType string
+
+const (
+	ACLSampleTypeNetworkPolicy ACLSampleType = "networkPolicy"
+	ACLSampleTypeNamespace     ACLSampleType = "namespace"
+)
+
+type ACLSampleDirection = string
+
+const (
+	ACLSampleDirectionIngress ACLSampleDirection = "ingress"
+	ACLSampleDirectionEgress  ACLSampleDirection = "egress"
+)
+
+const aclSamplingAnnotation = "k8s.ovn.org/acl-sampling"
+
+type GressACLSampling struct {
+	ObservationPointID int `json:"observation_point_id,omitempty"`
+	Probability        int `json:"probability,omitempty"`
+}
+
+type AclSampling struct {
+	Ingress *GressACLSampling `json:"ingress,omitempty"`
+	Egress  *GressACLSampling `json:"egress,omitempty"`
+}
+
+type ACLSampleInfo struct {
+	Type          ACLSampleType
+	Direction     ACLSampleDirection
+	Namespace     string
+	NetworkPolicy string
+}
+
+func (k *KubeData) GetSampleInfo(obsPointID int) (*ACLSampleInfo, error) {
+	obsPointIDstr := strconv.FormatUint(uint64(obsPointID), 10)
+	for objType, informer := range k.sampleInformers {
+		for _, direction := range []ACLSampleDirection{ACLSampleDirectionIngress, ACLSampleDirectionEgress} {
+			obs, err := informer.GetIndexer().ByIndex(direction, obsPointIDstr)
+			if err == nil && len(obs) > 0 {
+				var info *ACLSampleInfo
+				switch objType {
+				case typeNamespace:
+					namespace := obs[0].(*v1.Namespace)
+					info = &ACLSampleInfo{
+						Type:      ACLSampleTypeNamespace,
+						Direction: direction,
+						Namespace: namespace.Name,
+					}
+				case typeNetworkPolicy:
+					np := obs[0].(*netv1.NetworkPolicy)
+					info = &ACLSampleInfo{
+						Type:          ACLSampleTypeNetworkPolicy,
+						Direction:     direction,
+						NetworkPolicy: np.Name,
+					}
+				}
+				return info, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("Cannot find ObservationPointID %d", obsPointID)
 }
 
 func (k *KubeData) GetIPInfo(ip string) (*IPInfo, error) {
@@ -197,6 +268,87 @@ func (k *KubeData) NewServiceInformer(informerFactory informers.SharedInformerFa
 	return err
 }
 
+func getObsPoint(obj metav1.Object) (string, string, error) {
+	var ingress, egress string
+	samplingAnnotation, ok := obj.GetAnnotations()[aclSamplingAnnotation]
+	if !ok {
+		return "", "", nil
+	}
+	config := AclSampling{}
+	if err := json.Unmarshal([]byte(samplingAnnotation), &config); err != nil {
+		return "", "", fmt.Errorf("Failed parsing acl-sampling annotation %v", err)
+	}
+	if config.Ingress != nil {
+		ingress = strconv.FormatUint(uint64(config.Ingress.ObservationPointID), 10)
+	}
+	if config.Egress != nil {
+		egress = strconv.FormatUint(uint64(config.Egress.ObservationPointID), 10)
+	}
+	return ingress, egress, nil
+
+}
+func (k *KubeData) NewNetworkPolicyInformer(informerFactory informers.SharedInformerFactory) error {
+	nps := informerFactory.Networking().V1().NetworkPolicies().Informer()
+	err := nps.AddIndexers(map[string]cache.IndexFunc{
+		ACLSampleDirectionIngress: func(obj interface{}) ([]string, error) {
+			np := obj.(*netv1.NetworkPolicy)
+			ingress, _, err := getObsPoint(np)
+			if err != nil {
+				return []string{}, err
+			}
+			if ingress != "" {
+				return []string{ingress}, nil
+			}
+			return []string{}, nil
+		},
+		ACLSampleDirectionEgress: func(obj interface{}) ([]string, error) {
+			np := obj.(*netv1.NetworkPolicy)
+			_, egress, err := getObsPoint(np)
+			if err != nil {
+				return []string{}, err
+			}
+			if egress != "" {
+				return []string{egress}, nil
+			}
+			return []string{}, nil
+		},
+	})
+
+	k.sampleInformers[typeNetworkPolicy] = nps
+	return err
+}
+
+func (k *KubeData) NewNamespaceInformer(informerFactory informers.SharedInformerFactory) error {
+	namespaces := informerFactory.Core().V1().Namespaces().Informer()
+	err := namespaces.AddIndexers(map[string]cache.IndexFunc{
+		ACLSampleDirectionIngress: func(obj interface{}) ([]string, error) {
+			np := obj.(*v1.Namespace)
+			ingress, _, err := getObsPoint(np)
+			if err != nil {
+				return []string{}, err
+			}
+			if ingress != "" {
+				return []string{ingress}, nil
+			}
+			return []string{}, nil
+		},
+		ACLSampleDirectionEgress: func(obj interface{}) ([]string, error) {
+			np := obj.(*v1.Namespace)
+			_, egress, err := getObsPoint(np)
+			if err != nil {
+				return []string{}, err
+			}
+			if egress != "" {
+				return []string{egress}, nil
+			}
+			return []string{}, nil
+		},
+	})
+
+	k.sampleInformers[typeNamespace] = namespaces
+	return err
+}
+
 func (k *KubeData) NewReplicaSetInformer(informerFactory informers.SharedInformerFactory) error {
 	k.replicaSetInformer = informerFactory.Apps().V1().ReplicaSets().Informer()
 	return nil
@@ -206,6 +358,7 @@ func (k *KubeData) InitFromConfig(kubeConfigPath string) error {
 	// Initialization variables
 	k.stopChan = make(chan struct{})
 	k.ipInformers = map[string]cache.SharedIndexInformer{}
+	k.sampleInformers = map[ACLSampleType]cache.SharedIndexInformer{}
 
 	config, err := LoadConfig(kubeConfigPath)
 	if err != nil {
@@ -267,6 +420,16 @@ func (k *KubeData) initInformers(client kubernetes.Interface) error {
 		return err
 	}
 	err = k.NewReplicaSetInformer(informerFactory)
+	if err != nil {
+		return err
+	}
+
+	err = k.NewNetworkPolicyInformer(informerFactory)
+	if err != nil {
+		return err
+	}
+
+	err = k.NewNamespaceInformer(informerFactory)
 	if err != nil {
 		return err
 	}
