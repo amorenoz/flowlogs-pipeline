@@ -14,6 +14,20 @@ spec:
       labels:
         app: flowlogs-pipeline
     spec:
+      # required to be scheduled on a linux node with node-role.kubernetes.io/master label
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/master
+                    operator: In
+                    values:
+                      - ""
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - "linux"
       containers:
         - name: flowlogs-pipeline
           image: %DOCKER_IMG%:%DOCKER_TAG%
@@ -27,10 +41,15 @@ spec:
           volumeMounts:
             - name: configuration
               mountPath: "/etc/flowlogs-pipeline/"
+            - mountPath: /var/run/ovn/
+              name: host-var-run-ovs
       volumes:
         - name: configuration
           configMap:
             name: flowlogs-pipeline-configuration
+        - name: host-var-run-ovs
+          hostPath:
+            path: /var/run/openvswitch
       serviceAccountName: flowlogs-pipeline
 ---
 apiVersion: v1
