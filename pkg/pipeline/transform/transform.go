@@ -53,5 +53,6 @@ const (
 	OperationGeneric = "generic"
 	OperationNetwork = "network"
 	OperationFilter  = "filter"
+	OperationOVN     = "ovn"
 	OperationNone    = "none"
 )

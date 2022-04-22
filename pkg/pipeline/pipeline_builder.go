@@ -325,6 +325,8 @@ func getTransformer(params config.StageParam) (transform.Transformer, error) {
 		transformer, err = transform.NewTransformFilter(params)
 	case transform.OperationNetwork:
 		transformer, err = transform.NewTransformNetwork(params)
+	case transform.OperationOVN:
+		transformer, err = transform.NewTransformOVN(params)
 	case transform.OperationNone:
 		transformer, err = transform.NewTransformNone()
 	default:

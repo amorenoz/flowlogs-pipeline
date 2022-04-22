@@ -85,6 +85,7 @@ type Transform struct {
 	Generic api.TransformGeneric
 	Filter  api.TransformFilter
 	Network api.TransformNetwork
+	OVN     api.TransformOVN
 }
 
 type Extract struct {
